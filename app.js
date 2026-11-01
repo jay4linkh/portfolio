@@ -56,7 +56,7 @@
   $('#projectList').append(...c.projects.map((p) => el('article', { class: 'proj reveal', id: p.id, 'aria-labelledby': p.id + '-h' },
     el('div', { class: 'proj-top' },
       el('div', {}, el('p', { class: 'proj-kicker' }, p.kicker), el('h3', { id: p.id + '-h' }, p.title), el('p', { class: 'proj-summary' }, p.summary)),
-      el('div', { class: 'proj-metric' }, el('b', {}, p.metric.value), el('span', {}, p.metric.label))),
+      el('div', { class: 'proj-metric' }, el('b', {}, p.metric.value), el('span', {}, p.metric.label), p.note ? el('p', { class: 'hand' }, p.note) : null)),
     el('div', { class: 'proj-body' },
       el('div', { class: 'story' },
         el('div', {}, el('h4', {}, 'The problem'), el('p', {}, p.problem)),

@@ -11,10 +11,22 @@
     "resume": ""
   },
   "stats": [
-    { "value": "4", "label": "end-to-end systems built" },
-    { "value": "104,167", "label": "held-out events in one test set" },
-    { "value": "13", "label": "live space-data feeds wired up" },
-    { "value": "400", "label": "walk-forward RL training runs" }
+    {
+      "value": "4",
+      "label": "end-to-end systems built"
+    },
+    {
+      "value": "104,167",
+      "label": "held-out events in one test set"
+    },
+    {
+      "value": "13",
+      "label": "live space-data feeds wired up"
+    },
+    {
+      "value": "400",
+      "label": "walk-forward RL training runs"
+    }
   ],
   "projects": [
     {
@@ -25,18 +37,40 @@
       "problem": "Banks cross-sell blindly. On LendingClub I showed that credit data describes how much someone can borrow, not what they want, so no algorithm could fix it. The signal had to come from behaviour.",
       "built": "On Santander's 17 months of product holdings I found 112,063 acquisition events and 175 sequence rules. The final system fuses four engines: collaborative peers, a gradient-boosted content model reading 3 months of holdings history, sequence rules and a macro regime. One FastAPI app serves it, with a console that pulls a real held-out customer and checks its own answer.",
       "result": "85.3% top-3 hit rate on 104,167 held-out events (95% CI 85.1 to 85.6), against 70.5% for recommending the most popular products and about 14% for random picks.",
-      "metric": { "value": "85.3%", "label": "top-3 hit rate, held-out" },
+      "metric": {
+        "value": "85.3%",
+        "label": "top-3 hit rate, held-out"
+      },
       "chart": {
-        "type": "bars", "unit": "%", "max": 100,
+        "type": "bars",
+        "unit": "%",
+        "max": 100,
         "caption": "Top-3 hit rate on 104,167 held-out acquisition events, Mar to May 2016.",
         "items": [
-          { "label": "SmartCross pipeline", "value": 85.3, "highlight": true },
-          { "label": "Most-popular products", "value": 70.5 },
-          { "label": "Three random picks", "value": 13.6 }
+          {
+            "label": "SmartCross pipeline",
+            "value": 85.3,
+            "highlight": true
+          },
+          {
+            "label": "Most-popular products",
+            "value": 70.5
+          },
+          {
+            "label": "Three random picks",
+            "value": 13.6
+          }
         ]
       },
-      "stack": ["Python", "scikit-learn HistGB", "Collaborative filtering", "FastAPI", "Vanilla JS charts"],
-      "links": []
+      "stack": [
+        "Python",
+        "scikit-learn HistGB",
+        "Collaborative filtering",
+        "FastAPI",
+        "Vanilla JS charts"
+      ],
+      "links": [],
+      "note": "tested on 104,167 real customers, not a demo"
     },
     {
       "id": "cosmic",
@@ -46,19 +80,51 @@
       "problem": "Rubin, JWST, the Sun's monitors, LIGO and the Mars rovers publish data in minutes, but each in its own format and none of it is easy to look at together.",
       "built": "13 live feeds (Rubin and ZTF alerts, JWST and Hubble, SDO, GOES, SOHO, LIGO/Virgo/KAGRA, NASA GCN, Mars rovers, JPL asteroids, ISS). Source extraction on deep fields, a sunspot and CME detector, and two CNNs I trained on an RTX 3060: a fine-tuned Zoobot ConvNeXt for galaxy shapes and a Mars terrain classifier. Six 3D worlds you can fly through, or steer with your bare hands through the webcam.",
       "result": "Galaxy CNN reaches 88.7% accuracy on 10 classes (97.2% top-2), up from 82.8% for my first ResNet-18. The Mars CNN gets 80.0% top-1 and 89.0% top-3 on unseen terrain.",
-      "metric": { "value": "88.7%", "label": "galaxy accuracy, 10 classes" },
+      "metric": {
+        "value": "88.7%",
+        "label": "galaxy accuracy, 10 classes"
+      },
       "chart": {
-        "type": "bars", "unit": "%", "max": 100,
+        "type": "bars",
+        "unit": "%",
+        "max": 100,
         "caption": "Validation on 2,656 galaxies (Galaxy10 DECaLS) and the Mars held-out split.",
         "items": [
-          { "label": "Galaxy CNN v2 (ConvNeXt)", "value": 88.7, "highlight": true },
-          { "label": "Galaxy CNN v1 (ResNet-18)", "value": 82.8 },
-          { "label": "Mars terrain CNN, top-3", "value": 89.0, "highlight": true },
-          { "label": "Mars terrain CNN, top-1", "value": 80.0 }
+          {
+            "label": "Galaxy CNN v2 (ConvNeXt)",
+            "value": 88.7,
+            "highlight": true
+          },
+          {
+            "label": "Galaxy CNN v1 (ResNet-18)",
+            "value": 82.8
+          },
+          {
+            "label": "Mars terrain CNN, top-3",
+            "value": 89.0,
+            "highlight": true
+          },
+          {
+            "label": "Mars terrain CNN, top-1",
+            "value": 80.0
+          }
         ]
       },
-      "stack": ["PyTorch", "ONNX", "FastAPI", "Three.js", "MediaPipe hands", "Astropy / SEP"],
-      "links": [ { "label": "Code on GitHub", "url": "https://github.com/jay4linkh/cosmic-watch-ai" } ]
+      "stack": [
+        "PyTorch",
+        "ONNX",
+        "FastAPI",
+        "Three.js",
+        "MediaPipe hands",
+        "Astropy / SEP"
+      ],
+      "links": [
+        {
+          "label": "Code on GitHub",
+          "url": "https://github.com/jay4linkh/cosmic-watch-ai"
+        }
+      ],
+      "note": "you can fly it with your bare hands"
     },
     {
       "id": "sharpe",
@@ -68,20 +134,51 @@
       "problem": "Most RL trading demos look great because they peek at the future or tune on the test set. I wanted an answer I could defend.",
       "built": "A2C and REINFORCE written from scratch in PyTorch, reading 664 inputs a week: prices, SEC financials and 168,635 news headlines scored with FinBERT, all used only after they became public. 400 walk-forward runs picked the design; the 2022-23 holdout was opened once. A React app replays the agent's decisions and matches Python to 1e-6.",
       "result": "No edge: Sharpe 0.14 against 0.19 for equal weight, with a 90% interval for the gap of -0.18 to +0.16. Sanity checks prove the learner works: on a market with a planted signal it scores 3.88.",
-      "metric": { "value": "0.14", "label": "holdout Sharpe (equal weight 0.19)" },
+      "metric": {
+        "value": "0.14",
+        "label": "holdout Sharpe (equal weight 0.19)"
+      },
       "chart": {
-        "type": "bars", "unit": "", "max": 0.4, "decimals": 2,
+        "type": "bars",
+        "unit": "",
+        "max": 0.4,
+        "decimals": 2,
         "caption": "Sharpe ratio on the unseen 2022-23 holdout, after 10 bp trading costs.",
         "items": [
-          { "label": "Momentum top 10", "value": 0.38 },
-          { "label": "Equal weight", "value": 0.19 },
-          { "label": "RL agent (REINFORCE)", "value": 0.14, "highlight": true },
-          { "label": "DIA", "value": 0.10 },
-          { "label": "SPY", "value": 0.00 }
+          {
+            "label": "Momentum top 10",
+            "value": 0.38
+          },
+          {
+            "label": "Equal weight",
+            "value": 0.19
+          },
+          {
+            "label": "RL agent (REINFORCE)",
+            "value": 0.14,
+            "highlight": true
+          },
+          {
+            "label": "DIA",
+            "value": 0.1
+          },
+          {
+            "label": "SPY",
+            "value": 0.0
+          }
         ]
       },
-      "stack": ["PyTorch", "A2C", "REINFORCE", "FinBERT", "React 19", "TypeScript", "pytest"],
-      "links": []
+      "stack": [
+        "PyTorch",
+        "A2C",
+        "REINFORCE",
+        "FinBERT",
+        "React 19",
+        "TypeScript",
+        "pytest"
+      ],
+      "links": [],
+      "note": "yes, I published the miss. that's the point"
     },
     {
       "id": "pulse",
@@ -91,33 +188,120 @@
       "problem": "AI news repeats the same story across a dozen sites. A useful digest has to merge them, rank them for one reader and summarise without making things up.",
       "built": "bge-small embeddings cluster articles into stories, with a keyword check for the grey zone a single threshold missed. Stories are ranked by recency, coverage, credibility and substance, personalised with a feedback loop and MMR, and summarised by Gemini with Groq and Ollama fallbacks. A WhatsApp agent answers questions over the archive with RAG, and only sends an answer the model marks grounded and backs with a citation. Celery, Redis, Postgres and Docker, all on free tiers.",
       "result": "Duplicate detection F1 0.941 (precision 0.889, recall 1.0) and retrieval MRR 0.823 on a labelled eval that runs as a CI quality gate. First live run: 2,570 items became about 80 stories in 40 seconds on CPU.",
-      "metric": { "value": "0.941", "label": "duplicate-story F1" },
+      "metric": {
+        "value": "0.941",
+        "label": "duplicate-story F1"
+      },
       "chart": {
-        "type": "bars", "unit": "", "max": 1, "decimals": 3,
+        "type": "bars",
+        "unit": "",
+        "max": 1,
+        "decimals": 3,
         "caption": "Offline evaluation on a labelled set of news articles and questions.",
         "items": [
-          { "label": "Dedup recall", "value": 1.0 },
-          { "label": "Dedup F1", "value": 0.941, "highlight": true },
-          { "label": "Dedup precision", "value": 0.889 },
-          { "label": "Retrieval MRR", "value": 0.823, "highlight": true },
-          { "label": "Retrieval hit@1", "value": 0.75 }
+          {
+            "label": "Dedup recall",
+            "value": 1.0
+          },
+          {
+            "label": "Dedup F1",
+            "value": 0.941,
+            "highlight": true
+          },
+          {
+            "label": "Dedup precision",
+            "value": 0.889
+          },
+          {
+            "label": "Retrieval MRR",
+            "value": 0.823,
+            "highlight": true
+          },
+          {
+            "label": "Retrieval hit@1",
+            "value": 0.75
+          }
         ]
       },
-      "stack": ["FastAPI", "bge embeddings", "Gemini / Groq", "Celery + Redis", "Postgres", "Docker", "whatsapp-web.js"],
-      "links": [ { "label": "WhatsApp agent it builds on", "url": "https://github.com/jay4linkh/Whatsapp-Assistant-Agent" } ]
+      "stack": [
+        "FastAPI",
+        "bge embeddings",
+        "Gemini / Groq",
+        "Celery + Redis",
+        "Postgres",
+        "Docker",
+        "whatsapp-web.js"
+      ],
+      "links": [
+        {
+          "label": "WhatsApp agent it builds on",
+          "url": "https://github.com/jay4linkh/Whatsapp-Assistant-Agent"
+        }
+      ],
+      "note": "it won't answer unless it can cite a source"
     }
   ],
   "approach": [
-    { "title": "Hold out, then open it once", "text": "Test data stays sealed until the design is final. SharpeShooter's 2022-23 holdout was run a single time." },
-    { "title": "Beat a simple baseline first", "text": "Every model is compared with the dumbest thing that could work: most-popular, equal weight, a ResNet-18." },
-    { "title": "Report the miss", "text": "When a model does not win, the result says so, with the interval and the sanity checks that rule out a bug." },
-    { "title": "Ship something people can run", "text": "Trained models are committed with a version lock, so a teammate can clone and run without retraining." }
+    {
+      "title": "Hold out, then open it once",
+      "text": "Test data stays sealed until the design is final. SharpeShooter's 2022-23 holdout was run a single time."
+    },
+    {
+      "title": "Beat a simple baseline first",
+      "text": "Every model is compared with the dumbest thing that could work: most-popular, equal weight, a ResNet-18."
+    },
+    {
+      "title": "Report the miss",
+      "text": "When a model does not win, the result says so, with the interval and the sanity checks that rule out a bug."
+    },
+    {
+      "title": "Ship something people can run",
+      "text": "Trained models are committed with a version lock, so a teammate can clone and run without retraining."
+    }
   ],
   "skills": [
-    { "group": "Machine learning", "items": ["Recommender systems", "Gradient boosting", "CNNs and fine-tuning", "Reinforcement learning (A2C, REINFORCE, TD, Q-learning)", "Evaluation and bootstrap CIs"] },
-    { "group": "LLMs and NLP", "items": ["RAG", "Embeddings and clustering", "LLM-as-judge evals", "FinBERT sentiment", "Prompting with fallbacks"] },
-    { "group": "Engineering", "items": ["Python", "PyTorch", "scikit-learn", "FastAPI", "Celery and Redis", "Docker", "SQL"] },
-    { "group": "Front end and data viz", "items": ["React", "TypeScript", "Three.js", "D3-style SVG charts", "Streamlit"] }
+    {
+      "group": "Machine learning",
+      "items": [
+        "Recommender systems",
+        "Gradient boosting",
+        "CNNs and fine-tuning",
+        "Reinforcement learning (A2C, REINFORCE, TD, Q-learning)",
+        "Evaluation and bootstrap CIs"
+      ]
+    },
+    {
+      "group": "LLMs and NLP",
+      "items": [
+        "RAG",
+        "Embeddings and clustering",
+        "LLM-as-judge evals",
+        "FinBERT sentiment",
+        "Prompting with fallbacks"
+      ]
+    },
+    {
+      "group": "Engineering",
+      "items": [
+        "Python",
+        "PyTorch",
+        "scikit-learn",
+        "FastAPI",
+        "Celery and Redis",
+        "Docker",
+        "SQL"
+      ]
+    },
+    {
+      "group": "Front end and data viz",
+      "items": [
+        "React",
+        "TypeScript",
+        "Three.js",
+        "D3-style SVG charts",
+        "Streamlit"
+      ]
+    }
   ],
   "coursework": "Reinforcement Learning labs: TD learning, Q-learning and SARSA, linear value-function approximation, each as an executed, commented notebook."
 }

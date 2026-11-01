@@ -1,19 +1,22 @@
 /* Layout: a single reading column (72rem) of "model cards" — each project reads like an ML paper's
-   result: claim, method, evaluation figure with caption. Hero is a live embedding cloud. */
+   result: claim, method, evaluation figure with caption. Hero is a live embedding cloud.
+   Look: warm ivory paper and clay accent, tight Apple-style display sans, mono "robot" labels,
+   and one hand-written comic note per project. */
 :root {
-  --paper: #F5F6FA;
-  --panel: #FFFFFF;
-  --ink: #0D1222;
-  --muted: #586079;
-  --line: #DCE0EB;
-  --accent: #2F4BFF;
+  --paper: #F4F3EE;
+  --panel: #FBFAF7;
+  --ink: #161614;
+  --muted: #6A6862;
+  --line: #E2E0D7;
+  --accent: #C4643F;
   --accent-ink: #FFFFFF;
-  --accent-soft: #E7EBFF;
-  --bar: #C3C9DA;
-  --dot: 47, 75, 255;
-  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-  --font-body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --accent-soft: #F1E4DC;
+  --bar: #D6D3C8;
+  --dot: 196, 100, 63;
+  --font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  --font-body: "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-hand: "Comic Neue", "Comic Sans MS", "Chalkboard SE", cursive;
   --r: 14px;
   --gut: max(20px, env(safe-area-inset-left, 0px));
   --gut-r: max(20px, env(safe-area-inset-right, 0px));
@@ -21,14 +24,14 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #090C16; --panel: #0F1424; --ink: #E8EBF5; --muted: #8C94AE; --line: #1D2438;
-    --accent: #8FA0FF; --accent-ink: #0A0E1D; --accent-soft: #161D3D; --bar: #2B334C; --dot: 143, 160, 255;
+    --paper: #141413; --panel: #1B1B19; --ink: #F0EEE6; --muted: #A19E95; --line: #2C2B27;
+    --accent: #E2875F; --accent-ink: #141413; --accent-soft: #2E2520; --bar: #3A3934; --dot: 226, 135, 95;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #090C16; --panel: #0F1424; --ink: #E8EBF5; --muted: #8C94AE; --line: #1D2438;
-  --accent: #8FA0FF; --accent-ink: #0A0E1D; --accent-soft: #161D3D; --bar: #2B334C; --dot: 143, 160, 255;
+  --paper: #141413; --panel: #1B1B19; --ink: #F0EEE6; --muted: #A19E95; --line: #2C2B27;
+  --accent: #E2875F; --accent-ink: #141413; --accent-soft: #2E2520; --bar: #3A3934; --dot: 226, 135, 95;
   color-scheme: dark;
 }
 
@@ -53,7 +56,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; background: color-mix(in srgb, var(--paper) 82%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid transparent; transition: border-color .3s; }
 .nav.scrolled { border-bottom-color: var(--line); }
 .nav-in { display: flex; align-items: center; gap: 20px; height: 60px; }
-.mono-mark { font: 400 26px/1 var(--font-display); text-decoration: none; letter-spacing: -.02em; }
+.mono-mark { font: 600 26px/1 var(--font-display); text-decoration: none; letter-spacing: -.02em; }
 .nav-links { display: flex; gap: 22px; margin-left: auto; font-size: 15px; }
 .nav-links a { text-decoration: none; color: var(--muted); transition: color .2s; }
 .nav-links a:hover { color: var(--ink); }
@@ -66,7 +69,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, var(--paper) 0%, color-mix(in srgb, var(--paper) 70%, transparent) 45%, transparent 75%), linear-gradient(0deg, var(--paper) 0%, transparent 30%); }
 .hero-in, .hero .stats { position: relative; z-index: 1; }
 .hero-in { display: grid; gap: 18px; max-width: 46rem; margin-left: 0; }
-.hero-title { font: 400 clamp(46px, 8.4vw, 104px)/.95 var(--font-display); letter-spacing: -.025em; margin: 6px 0 4px; text-wrap: balance; }
+.hero-title { font: 600 clamp(46px, 8.4vw, 104px)/.95 var(--font-display); letter-spacing: -.025em; margin: 6px 0 4px; text-wrap: balance; }
 .hero-title span { display: block; }
 .hero-title em { display: block; font-style: italic; color: var(--accent); }
 .hero-lede { font-size: clamp(19px, 2.3vw, 23px); line-height: 1.45; margin: 0; max-width: 44ch; font-weight: 500; text-wrap: pretty; }
@@ -80,7 +83,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: clamp(48px, 7vw, 88px) 0 0; border-top: 1px solid var(--line); }
 .stat { padding: 18px 18px 0 0; display: grid; gap: 2px; min-width: 0; }
 .stat + .stat { padding-left: 18px; border-left: 1px solid var(--line); }
-.stat dt { font: 400 clamp(34px, 4.6vw, 52px)/1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.stat dt { font: 600 clamp(34px, 4.6vw, 52px)/1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .stat dd { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.4; }
 @media (max-width: 760px) {
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -92,7 +95,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .sec { padding-block: clamp(72px, 10vw, 128px); }
 .sec-alt { background: var(--panel); border-block: 1px solid var(--line); }
 .sec-head { display: grid; gap: 10px; margin-bottom: 36px; }
-.sec-head h2, .contact h2 { font: 400 clamp(34px, 5vw, 56px)/1.05 var(--font-display); letter-spacing: -.02em; margin: 0; max-width: 20ch; text-wrap: balance; }
+.sec-head h2, .contact h2 { font: 600 clamp(34px, 5vw, 56px)/1.05 var(--font-display); letter-spacing: -.02em; margin: 0; max-width: 20ch; text-wrap: balance; }
 
 .jump { display: flex; gap: 8px; flex-wrap: wrap; margin: -8px 0 40px; }
 .jump a { font: 500 13px/1 var(--font-mono); padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--muted); background: var(--panel); transition: color .2s, border-color .2s; }
@@ -103,10 +106,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .proj { background: var(--panel); border: 1px solid var(--line); border-radius: calc(var(--r) + 6px); padding: clamp(22px, 4vw, 44px); display: grid; gap: 28px; scroll-margin-top: 80px; }
 .proj-top { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: start; }
 .proj-kicker { font: 500 12.5px/1.3 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
-.proj h3 { font: 400 clamp(36px, 5vw, 58px)/1 var(--font-display); letter-spacing: -.02em; margin: 0 0 14px; }
+.proj h3 { font: 600 clamp(36px, 5vw, 58px)/1 var(--font-display); letter-spacing: -.02em; margin: 0 0 14px; }
 .proj-summary { font-size: clamp(18px, 2vw, 20px); line-height: 1.5; margin: 0; max-width: 40ch; text-wrap: pretty; }
 .proj-metric { border-left: 2px solid var(--accent); padding: 4px 0 4px 18px; align-self: center; }
-.proj-metric b { display: block; font: 400 clamp(56px, 8vw, 92px)/.95 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--ink); }
+.proj-metric b { display: block; font: 600 clamp(56px, 8vw, 92px)/.95 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--ink); }
 .proj-metric span { color: var(--muted); font-size: 14.5px; }
 
 .proj-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: start; }
@@ -144,7 +147,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 /* Approach */
 .approach { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 0; border-top: 1px solid var(--line); }
 .rule { padding: 24px 24px 8px 0; display: grid; gap: 8px; align-content: start; }
-.rule h3 { font: 400 26px/1.15 var(--font-display); margin: 0; letter-spacing: -.01em; }
+.rule h3 { font: 600 26px/1.15 var(--font-display); margin: 0; letter-spacing: -.01em; }
 .rule p { margin: 0; color: var(--muted); font-size: 15.5px; }
 
 /* Skills */
@@ -181,3 +184,21 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   @keyframes rise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Apple-style display tuning: tight tracking, calm second line. */
+.hero-title { letter-spacing: -.045em; line-height: .98; }
+.hero-title em { font-style: normal; color: transparent; background: linear-gradient(90deg, var(--muted), var(--accent)); -webkit-background-clip: text; background-clip: text; }
+.sec-head h2, .contact h2, .proj h3 { letter-spacing: -.035em; }
+.proj-metric b, .stat dt { letter-spacing: -.045em; }
+.mono-mark { letter-spacing: -.05em; font-size: 22px; }
+
+/* Robot touch: a terminal status line with a blinking cursor. */
+.bootline { font: 500 13px/1.4 var(--font-mono); color: var(--muted); margin: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.bootline .ok { color: var(--accent); }
+.bootline .cur { display: inline-block; width: 8px; height: 15px; background: var(--accent); vertical-align: -2px; }
+@media (prefers-reduced-motion: no-preference) { .bootline .cur { animation: blink 1.1s steps(1) infinite; } @keyframes blink { 50% { opacity: 0; } } }
+
+/* Comic touch: one hand-written margin note per project. */
+.hand { font: 700 19px/1.25 var(--font-hand); color: var(--accent); transform: rotate(-2.5deg); margin: 10px 0 0; max-width: 24ch; display: flex; gap: 6px; }
+.hand::before { content: "↳"; }
+.rule h3 { font-size: 22px; }
