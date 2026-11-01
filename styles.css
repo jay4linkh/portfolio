@@ -8,11 +8,11 @@
   --ink: #161614;
   --muted: #6A6862;
   --line: #E2E0D7;
-  --accent: #C4643F;
+  --accent: #2563EB;
   --accent-ink: #FFFFFF;
-  --accent-soft: #F1E4DC;
+  --accent-soft: #E3EAF9;
   --bar: #D6D3C8;
-  --dot: 196, 100, 63;
+  --dot: 37, 99, 235;
   --font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
   --font-body: "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -25,13 +25,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #141413; --panel: #1B1B19; --ink: #F0EEE6; --muted: #A19E95; --line: #2C2B27;
-    --accent: #E2875F; --accent-ink: #141413; --accent-soft: #2E2520; --bar: #3A3934; --dot: 226, 135, 95;
+    --accent: #4ADE80; --accent-ink: #141413; --accent-soft: #1C2B21; --bar: #3A3934; --dot: 74, 222, 128;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #141413; --panel: #1B1B19; --ink: #F0EEE6; --muted: #A19E95; --line: #2C2B27;
-  --accent: #E2875F; --accent-ink: #141413; --accent-soft: #2E2520; --bar: #3A3934; --dot: 226, 135, 95;
+  --accent: #4ADE80; --accent-ink: #141413; --accent-soft: #1C2B21; --bar: #3A3934; --dot: 74, 222, 128;
   color-scheme: dark;
 }
 
