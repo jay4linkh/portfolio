@@ -111,6 +111,7 @@ function startField(cv) {
   const rnd = (() => { let s = 11; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
   const gauss = () => { let u = 0, v = 0; while (!u) u = rnd(); while (!v) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
   const names = ['SmartCross', 'Cosmic Watch', 'SharpeShooter', 'PulseAI'];
+  const targets = ['smartcross', 'cosmic', 'sharpe', 'pulse'];
   const centres = [[-0.5, -0.32, 0.25], [0.5, -0.3, -0.25], [0.42, 0.42, 0.3], [-0.42, 0.38, -0.3]];
   const pts = [];
   centres.forEach((c, k) => { for (let i = 0; i < 46; i++) pts.push({ x: c[0] + gauss() * 0.13, y: c[1] + gauss() * 0.13, z: c[2] + gauss() * 0.13, k, ph: rnd() * 6.28 }); });
@@ -153,21 +154,24 @@ function startField(cv) {
       let best = 38 * 38;
       for (const q of P) if (q.k >= 0) { const dd = (q.X - mouse.x) ** 2 + (q.Y - mouse.y) ** 2; if (dd < best) { best = dd; hot = q.k; } }
     }
-    ease = ease.map((e, k) => e + ((k === hot ? 1 : 0) - e) * 0.12);
+    ease = ease.map((e, k) => e + ((k === hot ? 1 : 0) - e) * 0.15);
+    cv.style.cursor = hot >= 0 ? 'pointer' : 'crosshair';
     const lit = (k) => (k < 0 ? 0 : ease[k]);
     const dim = hot >= 0 ? 0.45 : 1;
-    ctx.lineWidth = 1;
     for (const [i, j, k] of edges) {
       const p = P[i], q = P[j], l = lit(k);
-      ctx.strokeStyle = `rgba(${rgb},${(0.13 + l * 0.35) * (l > 0.05 ? 1 : dim) * Math.min(p.d, 1)})`;
+      ctx.lineWidth = 1 + l * 0.8;
+      ctx.strokeStyle = `rgba(${rgb},${Math.min(1, (0.13 + l * 0.7) * (l > 0.05 ? 1 : dim) * Math.min(p.d, 1))})`;
       ctx.beginPath(); ctx.moveTo(p.X, p.Y); ctx.lineTo(q.X, q.Y); ctx.stroke();
     }
     for (const q of P) {
       const l = lit(q.k);
-      const r = (q.k < 0 ? 1.2 : 2.1 + l * 1.2) * q.d;
-      const al = q.k < 0 ? 0.25 : (0.35 + q.d * 0.4 + l * 0.3) * (l > 0.05 ? 1 : dim);
+      const r = (q.k < 0 ? 1.2 : 2.1 + l * 2) * q.d;
+      const al = q.k < 0 ? 0.25 : (0.35 + q.d * 0.4 + l * 0.6) * (l > 0.05 ? 1 : dim);
+      ctx.shadowBlur = l * 14; ctx.shadowColor = `rgba(${rgb},${l})`;
       ctx.fillStyle = `rgba(${rgb},${Math.min(1, al)})`;
       ctx.beginPath(); ctx.arc(q.X, q.Y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
     }
     // cluster labels at each centroid
     ctx.font = '500 11px "Geist Mono", ui-monospace, monospace';
@@ -177,10 +181,10 @@ function startField(cv) {
       for (const q of P) if (q.k === k) { sx += q.X; sy += q.Y; n++; }
       const l = ease[k], x = sx / n, y = sy / n - 34 - l * 6;
       const w = ctx.measureText(names[k]).width + 14;
-      ctx.fillStyle = `rgba(${l > 0.05 ? rgb : ink},${0.08 + l * 0.12})`;
+      ctx.fillStyle = `rgba(${l > 0.05 ? rgb : ink},${0.08 + l * 0.22})`;
       ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w / 2, y - 11, w, 20, 10) : ctx.rect(x - w / 2, y - 11, w, 20); ctx.fill();
       ctx.fillStyle = `rgba(${l > 0.05 ? rgb : ink},${0.55 + l * 0.45})`;
-      ctx.fillText(names[k], x, y + 3);
+      ctx.fillText(names[k] + (l > 0.5 ? '  →' : ''), x, y + 3);
     }
   };
   const loop = (ts) => { t = ts; draw(); requestAnimationFrame(loop); };
@@ -188,6 +192,13 @@ function startField(cv) {
   const at = (e) => { const b = cv.getBoundingClientRect(); mouse = { x: e.clientX - b.left, y: e.clientY - b.top }; if (still) draw(); };
   cv.addEventListener('pointermove', at);
   cv.addEventListener('pointerdown', at);
+  // tap or click a cluster to jump to that project's write-up
+  cv.addEventListener('click', (e) => {
+    at(e); draw();
+    if (hot < 0) return;
+    const el = document.getElementById(targets[hot]);
+    if (el) { el.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' }); history.replaceState(null, '', '#' + targets[hot]); }
+  });
   cv.addEventListener('pointerleave', () => { mouse = null; if (still) draw(); });
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', recolor);
   size(); recolor();
