@@ -69,7 +69,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hero-title { font: 400 clamp(46px, 8.4vw, 104px)/.95 var(--font-display); letter-spacing: -.025em; margin: 6px 0 4px; text-wrap: balance; }
 .hero-title span { display: block; }
 .hero-title em { display: block; font-style: italic; color: var(--accent); }
-.hero-lede { font-size: clamp(19px, 2.3vw, 23px); line-height: 1.45; margin: 0; max-width: 34ch; font-weight: 500; text-wrap: pretty; }
+.hero-lede { font-size: clamp(19px, 2.3vw, 23px); line-height: 1.45; margin: 0; max-width: 44ch; font-weight: 500; text-wrap: pretty; }
 .hero-sub { margin: 0; color: var(--muted); max-width: 58ch; }
 .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
 .btn { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); text-decoration: none; font-weight: 500; font-size: 15.5px; transition: transform .2s, border-color .2s, background .2s; }
