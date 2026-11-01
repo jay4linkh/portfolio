@@ -102,19 +102,34 @@
   if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
 })();
 
-// Hero: a slowly turning embedding cloud — four clusters, one per project. The pointer links nearby points.
+// Hero: a slowly turning embedding space in its own window — one cluster per project, each point
+// linked to its nearest neighbours. Hovering (or tapping) a cluster lights it up and names it.
 function startField(cv) {
   const ctx = cv.getContext('2d');
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let W = 0, H = 0, dpr = 1, rgb = '47,75,255', mouse = null, t = 0;
-  const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+  let W = 0, H = 0, dpr = 1, rgb = '37,99,235', ink = '22,22,20', mouse = null, t = 0, hot = -1, ease = [0, 0, 0, 0];
+  const rnd = (() => { let s = 11; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
   const gauss = () => { let u = 0, v = 0; while (!u) u = rnd(); while (!v) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
-  const centres = [[-0.55, -0.2, 0.2], [0.45, -0.35, -0.3], [0.2, 0.45, 0.35], [-0.35, 0.4, -0.4]];
+  const names = ['SmartCross', 'Cosmic Watch', 'SharpeShooter', 'PulseAI'];
+  const centres = [[-0.5, -0.32, 0.25], [0.5, -0.3, -0.25], [0.42, 0.42, 0.3], [-0.42, 0.38, -0.3]];
   const pts = [];
-  centres.forEach((c, k) => { for (let i = 0; i < 70; i++) pts.push({ x: c[0] + gauss() * 0.16, y: c[1] + gauss() * 0.16, z: c[2] + gauss() * 0.16, k }); });
-  for (let i = 0; i < 60; i++) pts.push({ x: (rnd() - 0.5) * 2, y: (rnd() - 0.5) * 1.6, z: (rnd() - 0.5) * 2, k: -1 });
+  centres.forEach((c, k) => { for (let i = 0; i < 46; i++) pts.push({ x: c[0] + gauss() * 0.13, y: c[1] + gauss() * 0.13, z: c[2] + gauss() * 0.13, k, ph: rnd() * 6.28 }); });
+  for (let i = 0; i < 40; i++) pts.push({ x: (rnd() - 0.5) * 1.9, y: (rnd() - 0.5) * 1.7, z: (rnd() - 0.5) * 1.9, k: -1, ph: rnd() * 6.28 });
+  // two nearest neighbours inside each cluster, found once
+  const edges = [];
+  pts.forEach((p, i) => {
+    if (p.k < 0) return;
+    const near = pts.map((q, j) => [j, q.k === p.k && j !== i ? (p.x - q.x) ** 2 + (p.y - q.y) ** 2 + (p.z - q.z) ** 2 : Infinity]).sort((a, b) => a[1] - b[1]).slice(0, 2);
+    near.forEach(([j]) => { if (i < j || !edges.some((e) => e[0] === j && e[1] === i)) edges.push([i, j, p.k]); });
+  });
 
-  const recolor = () => { rgb = getComputedStyle(document.documentElement).getPropertyValue('--dot').trim() || rgb; if (still) draw(); };
+  const recolor = () => {
+    const cs = getComputedStyle(document.documentElement);
+    rgb = cs.getPropertyValue('--dot').trim() || rgb;
+    const m = cs.getPropertyValue('--ink').trim().match(/^#(..)(..)(..)$/);
+    if (m) ink = m.slice(1).map((h) => parseInt(h, 16)).join(',');
+    if (still) draw();
+  };
   const size = () => {
     dpr = Math.min(2, devicePixelRatio || 1);
     W = cv.clientWidth; H = cv.clientHeight;
@@ -123,29 +138,57 @@ function startField(cv) {
   };
   const draw = () => {
     ctx.clearRect(0, 0, W, H);
-    const a = t * 0.00012, ca = Math.cos(a), sa = Math.sin(a);
-    const wide = W > 760, cx = wide ? W * 0.68 : W * 0.88, cy = wide ? H * 0.42 : H * 0.2, sc = Math.min(W, H) * (wide ? 0.42 : 0.55), fade = wide ? 1 : 0.55;
-    const proj = pts.map((p) => {
-      const x = p.x * ca - p.z * sa, z = p.x * sa + p.z * ca, f = 1.8 / (2.6 + z);
-      return { X: cx + x * sc * f, Y: cy + p.y * sc * f, d: f, k: p.k };
+    const a = t * 0.00014, ca = Math.cos(a), sa = Math.sin(a), tilt = 0.32, ct = Math.cos(tilt), st = Math.sin(tilt);
+    const cx = W / 2, cy = H / 2, sc = Math.min(W, H) * 0.62;
+    const P = pts.map((p) => {
+      const bob = Math.sin(t * 0.0012 + p.ph) * 0.012;
+      let x = p.x * ca - p.z * sa, z = p.x * sa + p.z * ca, y = p.y + bob;
+      const y2 = y * ct - z * st; z = y * st + z * ct;
+      const f = 2 / (3 + z);
+      return { X: cx + x * sc * f, Y: cy + y2 * sc * f, d: f, k: p.k };
     });
+    // which cluster is under the pointer
+    hot = -1;
     if (mouse) {
-      ctx.lineWidth = 1;
-      for (const q of proj) {
-        const dx = q.X - mouse.x, dy = q.Y - mouse.y, dd = dx * dx + dy * dy;
-        if (dd < 140 * 140) { ctx.strokeStyle = `rgba(${rgb},${0.35 * (1 - Math.sqrt(dd) / 140)})`; ctx.beginPath(); ctx.moveTo(mouse.x, mouse.y); ctx.lineTo(q.X, q.Y); ctx.stroke(); }
-      }
+      let best = 38 * 38;
+      for (const q of P) if (q.k >= 0) { const dd = (q.X - mouse.x) ** 2 + (q.Y - mouse.y) ** 2; if (dd < best) { best = dd; hot = q.k; } }
     }
-    for (const q of proj) {
-      const r = (q.k < 0 ? 1.1 : 1.9) * q.d * 1.25;
-      ctx.fillStyle = `rgba(${rgb},${fade * (q.k < 0 ? 0.22 : 0.3 + q.d * 0.35)})`;
+    ease = ease.map((e, k) => e + ((k === hot ? 1 : 0) - e) * 0.12);
+    const lit = (k) => (k < 0 ? 0 : ease[k]);
+    const dim = hot >= 0 ? 0.45 : 1;
+    ctx.lineWidth = 1;
+    for (const [i, j, k] of edges) {
+      const p = P[i], q = P[j], l = lit(k);
+      ctx.strokeStyle = `rgba(${rgb},${(0.13 + l * 0.35) * (l > 0.05 ? 1 : dim) * Math.min(p.d, 1)})`;
+      ctx.beginPath(); ctx.moveTo(p.X, p.Y); ctx.lineTo(q.X, q.Y); ctx.stroke();
+    }
+    for (const q of P) {
+      const l = lit(q.k);
+      const r = (q.k < 0 ? 1.2 : 2.1 + l * 1.2) * q.d;
+      const al = q.k < 0 ? 0.25 : (0.35 + q.d * 0.4 + l * 0.3) * (l > 0.05 ? 1 : dim);
+      ctx.fillStyle = `rgba(${rgb},${Math.min(1, al)})`;
       ctx.beginPath(); ctx.arc(q.X, q.Y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    // cluster labels at each centroid
+    ctx.font = '500 11px "Geist Mono", ui-monospace, monospace';
+    ctx.textAlign = 'center';
+    for (let k = 0; k < 4; k++) {
+      let sx = 0, sy = 0, n = 0;
+      for (const q of P) if (q.k === k) { sx += q.X; sy += q.Y; n++; }
+      const l = ease[k], x = sx / n, y = sy / n - 34 - l * 6;
+      const w = ctx.measureText(names[k]).width + 14;
+      ctx.fillStyle = `rgba(${l > 0.05 ? rgb : ink},${0.08 + l * 0.12})`;
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w / 2, y - 11, w, 20, 10) : ctx.rect(x - w / 2, y - 11, w, 20); ctx.fill();
+      ctx.fillStyle = `rgba(${l > 0.05 ? rgb : ink},${0.55 + l * 0.45})`;
+      ctx.fillText(names[k], x, y + 3);
     }
   };
   const loop = (ts) => { t = ts; draw(); requestAnimationFrame(loop); };
-  addEventListener('resize', size);
-  cv.parentElement.addEventListener('pointermove', (e) => { const b = cv.getBoundingClientRect(); mouse = { x: e.clientX - b.left, y: e.clientY - b.top }; });
-  cv.parentElement.addEventListener('pointerleave', () => { mouse = null; });
+  new ResizeObserver(size).observe(cv);
+  const at = (e) => { const b = cv.getBoundingClientRect(); mouse = { x: e.clientX - b.left, y: e.clientY - b.top }; if (still) draw(); };
+  cv.addEventListener('pointermove', at);
+  cv.addEventListener('pointerdown', at);
+  cv.addEventListener('pointerleave', () => { mouse = null; if (still) draw(); });
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', recolor);
   size(); recolor();
   if (still) { t = 4000; draw(); } else requestAnimationFrame(loop);
