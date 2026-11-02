@@ -232,6 +232,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .ship .arcs { stroke: var(--accent); opacity: 0; filter: drop-shadow(0 0 3px var(--accent)); }
 .ship .water { stroke: var(--accent); stroke-dasharray: 5 3; filter: drop-shadow(0 0 4px var(--accent)); }
 .ship .w2 { opacity: .55; }
+.ship .ports { fill: var(--paper); filter: none; }
+.ship .stripe { fill: var(--paper); }
 @media (prefers-reduced-motion: no-preference) {
   .ship .hull { animation: zap 5.5s 1s infinite both; transform-origin: 50% 80%; }
   .ship .arcs { animation: arc 5.5s 1s infinite both; }
