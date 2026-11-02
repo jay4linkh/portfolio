@@ -233,10 +233,21 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .ship .water { stroke: var(--accent); stroke-dasharray: 5 3; filter: drop-shadow(0 0 4px var(--accent)); }
 .ship .w2 { opacity: .55; }
 .ship .ports { fill: var(--paper); filter: none; }
+/* Storm: a small cloud and rain over the ship, and a bolt that strikes as it zaps in and out. */
+.ship .storm { opacity: 0; }
+.ship .cloud { fill: var(--muted); opacity: .38; }
+.ship .rain { stroke: var(--muted); stroke-width: .8; }
+.ship .bolt { stroke: var(--accent); opacity: 0; filter: drop-shadow(0 0 4px var(--accent)) drop-shadow(0 0 1px var(--ink)); }
 .ship .stripe { fill: var(--paper); }
 @media (prefers-reduced-motion: no-preference) {
   .ship .hull { animation: zap 5.5s 1s infinite both; transform-origin: 50% 80%; }
   .ship .arcs { animation: arc 5.5s 1s infinite both; }
+  .ship .storm { animation: tide 5.5s 1s infinite both; }
+  .ship .bolt { animation: arc 5.5s 1s infinite both; }
+  .ship .rain path { animation: rain .7s linear infinite; }
+  .ship .rain path:nth-child(2n) { animation-delay: -.35s; }
+  .ship .rain path:nth-child(3n) { animation-delay: -.2s; }
+  @keyframes rain { from { transform: translate(0, 0); opacity: 0; } 20% { opacity: .9; } to { transform: translate(-6px, 24px); opacity: 0; } }
   .ship .water { animation: tide 5.5s 1s infinite both; }
   .ship .water path { animation: flow 1.2s linear infinite; }
   .ship .water .w2 { animation-direction: reverse; animation-duration: 1.6s; }
@@ -260,4 +271,4 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   }
   @keyframes jitter { 50% { transform: translate(1px, -1px) scaleX(-1); transform-origin: center; } }
 }
-@media (prefers-reduced-motion: reduce) { .ship .arcs { display: none; } }
+@media (prefers-reduced-motion: reduce) { .ship .arcs, .ship .bolt, .ship .rain { display: none; } .ship .storm { opacity: 1; } }
