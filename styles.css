@@ -1,6 +1,6 @@
 /* Layout: a single reading column (72rem) of "model cards" — each project reads like an ML paper's
    result: claim, method, evaluation figure with caption. Hero is a live embedding cloud.
-   Look: warm ivory paper and clay accent, tight Apple-style display sans, mono "robot" labels,
+   Look: warm ivory paper, blue (light) / green (dark) accent, tight Apple-style display sans, mono "robot" labels,
    and one hand-written comic note per project. */
 :root {
   --paper: #F4F3EE;
