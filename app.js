@@ -99,6 +99,8 @@
     });
   } else document.querySelectorAll('.reveal').forEach((n) => n.classList.add('in'));
 
+  startSwarm(document.querySelectorAll('.sec-head, .proj, .rule, .skill'));
+
   if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
 })();
 
@@ -204,4 +206,67 @@ function startField(cv) {
   size(); recolor();
   if (still) { t = 4000; draw(); } else requestAnimationFrame(loop);
   return { recolor };
+}
+
+// Agent swarm: as each block scrolls in, a few cursors fly over, draw a selection box with its size,
+// type the heading in, then leave. Runs once per block and never when reduced motion is on.
+function startSwarm(nodes) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+  const layer = document.createElement('div');
+  layer.className = 'swarm';
+  layer.setAttribute('aria-hidden', 'true');
+  document.body.append(layer);
+  const colors = ['var(--accent)', '#F59E0B', '#EC4899', '#8B5CF6', '#06B6D4'];
+  const names = ['agent-01', 'agent-02', 'agent-03', 'agent-04', 'agent-05'];
+  const arrow = (c) => `<svg viewBox="0 0 14 20" width="14" height="20"><path d="M1 1v15l4-3.6 2.8 6.4 2.4-1-2.8-6.3H13z" fill="${c}" stroke="var(--paper)" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  let k = 0;
+
+  const run = async (node) => {
+    const r = node.getBoundingClientRect();
+    const x = r.left + scrollX, y = r.top + scrollY;
+    const n = innerWidth < 640 ? 2 : 3;
+    layer.style.height = document.documentElement.scrollHeight + 'px';
+    const box = Object.assign(document.createElement('div'), { className: 'swarm-box' });
+    box.style.cssText = `left:${x}px;top:${y}px;width:${r.width}px;height:${r.height}px`;
+    box.innerHTML = `<i></i><i></i><i></i><i></i><b>${Math.round(r.width)} × ${Math.round(r.height)}</b>`;
+    const guide = Object.assign(document.createElement('div'), { className: 'swarm-guide' });
+    guide.style.cssText = `left:0;right:0;top:${y}px`;
+    const spots = [[x, y], [x + r.width, y + r.height * .5], [x + r.width * .4, y + r.height]];
+    const cursors = [];
+    for (let i = 0; i < n; i++) {
+      const j = (k + i) % colors.length, c = document.createElement('div');
+      c.className = 'swarm-cur';
+      c.innerHTML = arrow(colors[j]) + `<span style="background:${colors[j]}">${names[j]}</span>`;
+      const side = Math.random() < .5 ? -60 : innerWidth + 60;
+      c.style.transform = `translate(${side + scrollX}px, ${y + (Math.random() - .5) * 300}px)`;
+      layer.append(c); cursors.push(c);
+    }
+    k += n;
+
+    // Type the heading in while the box is up.
+    const h = node.querySelector('h2, h3');
+    const text = h ? h.textContent : '';
+    if (h) { h.style.minHeight = h.offsetHeight + 'px'; h.textContent = ''; h.classList.add('typing'); }
+
+    await wait(30);
+    cursors.forEach((c, i) => { const [sx, sy] = spots[i]; c.style.transform = `translate(${sx}px, ${sy}px)`; });
+    await wait(620);
+    layer.append(box, guide);
+    requestAnimationFrame(() => { box.classList.add('on'); guide.classList.add('on'); });
+    if (h) {
+      for (let i = 1; i <= text.length; i++) { h.textContent = text.slice(0, i); await wait(Math.max(12, 520 / text.length)); }
+      h.classList.remove('typing'); h.style.minHeight = '';
+    } else await wait(500);
+    await wait(260);
+    box.classList.remove('on'); guide.classList.remove('on');
+    cursors.forEach((c) => { c.style.transform += ' translate(' + (Math.random() < .5 ? -1 : 1) * innerWidth + 'px, -120px)'; c.classList.add('off'); });
+    await wait(700);
+    [box, guide, ...cursors].forEach((e) => e.remove());
+  };
+
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (e.isIntersecting) { io.unobserve(e.target); run(e.target); }
+  }), { rootMargin: '0px 0px -18% 0px' });
+  nodes.forEach((n) => { if (n.getBoundingClientRect().top > innerHeight * .8) io.observe(n); });
 }

@@ -272,3 +272,19 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   @keyframes jitter { 50% { transform: translate(1px, -1px) scaleX(-1); transform-origin: center; } }
 }
 @media (prefers-reduced-motion: reduce) { .ship .arcs, .ship .bolt, .ship .rain { display: none; } .ship .storm { opacity: 1; } }
+
+/* Agent swarm overlay: cursors, a selection box with its size, and a guide line. */
+.swarm { position: absolute; inset: 0 0 auto 0; height: 0; overflow: hidden; pointer-events: none; z-index: 40; }
+.swarm-cur { position: absolute; left: 0; top: 0; display: flex; align-items: flex-start; gap: 2px; transition: transform .62s cubic-bezier(.3,.7,.2,1), opacity .6s; will-change: transform; }
+.swarm-cur.off { opacity: 0; }
+.swarm-cur svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,.25)); }
+.swarm-cur span { margin-top: 14px; font: 500 10px/1 var(--font-mono); color: #fff; padding: 3px 5px; border-radius: 4px; white-space: nowrap; }
+.swarm-box { position: absolute; border: 1px solid var(--accent); border-radius: 2px; opacity: 0; transition: opacity .25s; }
+.swarm-box.on { opacity: 1; }
+.swarm-box i { position: absolute; width: 7px; height: 7px; background: var(--paper); border: 1px solid var(--accent); }
+.swarm-box i:nth-child(1) { left: -4px; top: -4px; } .swarm-box i:nth-child(2) { right: -4px; top: -4px; }
+.swarm-box i:nth-child(3) { left: -4px; bottom: -4px; } .swarm-box i:nth-child(4) { right: -4px; bottom: -4px; }
+.swarm-box b { position: absolute; left: 50%; bottom: -24px; transform: translateX(-50%); font: 500 10px/1 var(--font-mono); background: var(--accent); color: var(--accent-ink); padding: 4px 6px; border-radius: 4px; }
+.swarm-guide { position: absolute; height: 1px; background: var(--accent); opacity: 0; transition: opacity .25s; }
+.swarm-guide.on { opacity: .35; }
+.typing::after { content: ""; display: inline-block; width: 2px; height: .9em; margin-left: 2px; vertical-align: -.08em; background: var(--accent); }
