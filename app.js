@@ -208,7 +208,7 @@ function startField(cv) {
   return { recolor };
 }
 
-// Agent swarm: as each block scrolls in, a few cursors fly over, draw a selection box with its size,
+// Agent swarm (in the theme's accent): as each block scrolls in, a few cursors fly over, draw a selection box with its size,
 // type the heading in, then leave. Runs once per block and never when reduced motion is on.
 function startSwarm(nodes) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
@@ -216,7 +216,6 @@ function startSwarm(nodes) {
   layer.className = 'swarm';
   layer.setAttribute('aria-hidden', 'true');
   document.body.append(layer);
-  const colors = ['var(--accent)', '#F59E0B', '#EC4899', '#8B5CF6', '#06B6D4'];
   const names = ['agent-01', 'agent-02', 'agent-03', 'agent-04', 'agent-05'];
   const arrow = (c) => `<svg viewBox="0 0 14 20" width="14" height="20"><path d="M1 1v15l4-3.6 2.8 6.4 2.4-1-2.8-6.3H13z" fill="${c}" stroke="var(--paper)" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -235,9 +234,9 @@ function startSwarm(nodes) {
     const spots = [[x, y], [x + r.width, y + r.height * .5], [x + r.width * .4, y + r.height]];
     const cursors = [];
     for (let i = 0; i < n; i++) {
-      const j = (k + i) % colors.length, c = document.createElement('div');
+      const j = (k + i) % names.length, c = document.createElement('div');
       c.className = 'swarm-cur';
-      c.innerHTML = arrow(colors[j]) + `<span style="background:${colors[j]}">${names[j]}</span>`;
+      c.innerHTML = arrow('var(--accent)') + `<span>${names[j]}</span>`;
       const side = Math.random() < .5 ? -60 : innerWidth + 60;
       c.style.transform = `translate(${side + scrollX}px, ${y + (Math.random() - .5) * 300}px)`;
       layer.append(c); cursors.push(c);
