@@ -271,53 +271,91 @@ function startSwarm(nodes) {
   nodes.forEach((n) => { if (n.getBoundingClientRect().top > innerHeight * .8) io.observe(n); });
 }
 
-// Background music, made live in the browser (no audio file): slow ambient chords with a soft
-// pluck on top. Browsers only allow sound after a tap, so it is off until the visitor turns it on;
+// Background music, made live in the browser (no audio file): a dark synthwave loop at 104 BPM —
+// kick, hats, a pulsing saw-bass arpeggio, a sidechained pad and random "data" blips.
+// Browsers only allow sound after a tap, so it is off until the visitor turns it on;
 // once they have, it starts again on their first tap or key press on later visits.
 function startMusic(btn) {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!btn || !AC) { if (btn) btn.hidden = true; return; }
-  let ctx, master, playing = false, timer;
+  let ctx, master, bus, padBus, noise, playing = false, timer = null, step = 0, next = 0;
   const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
-  const chords = [[57, 64, 67, 71, 74], [53, 60, 64, 69, 72], [48, 55, 59, 64, 67], [55, 62, 66, 69, 74]]; // Am9 Fmaj9 Cmaj7 G6/9
-  const scale = [69, 71, 72, 74, 76, 79, 81, 83];
+  const STEP = 60 / 104 / 4;                                   // one 16th note
+  const prog = [                                               // Am, F, C, Em — two bars each
+    { bass: 33, pad: [57, 60, 64, 71] }, { bass: 29, pad: [53, 57, 60, 67] },
+    { bass: 36, pad: [55, 60, 64, 71] }, { bass: 28, pad: [52, 55, 59, 67] }];
+  const arp = [0, 12, 7, 12, 0, 12, 10, 12, 0, 12, 7, 15, 0, 12, 7, 19];
+  const blipNotes = [81, 84, 86, 88, 91, 93, 96];
 
   const build = () => {
     ctx = new AC();
     master = ctx.createGain(); master.gain.value = 0;
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400; lp.Q.value = .4;
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4;
+    bus = ctx.createGain();
+    const delay = ctx.createDelay(1), fb = ctx.createGain(), wet = ctx.createGain();
+    delay.delayTime.value = STEP * 3; fb.gain.value = .32; wet.gain.value = .22;
+    delay.connect(fb).connect(delay); delay.connect(wet).connect(bus);
+    bus.connect(comp).connect(master).connect(ctx.destination);
+    ctx.echo = delay;
+    // Pad sits behind its own filter, which slowly opens and closes.
+    padBus = ctx.createGain(); padBus.gain.value = .9;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 2;
     const lfo = ctx.createOscillator(), depth = ctx.createGain();
-    lfo.frequency.value = .05; depth.gain.value = 500; lfo.connect(depth).connect(lp.frequency); lfo.start();
-    // Reverb from a decaying noise burst, so it sounds roomy without loading a file.
-    const verb = ctx.createConvolver(), len = ctx.sampleRate * 3.2, ir = ctx.createBuffer(2, len, ctx.sampleRate);
-    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
-    verb.buffer = ir;
-    const wet = ctx.createGain(); wet.gain.value = .55;
-    lp.connect(master); lp.connect(verb).connect(wet).connect(master); master.connect(ctx.destination);
-    ctx.bus = lp;
+    lfo.frequency.value = .07; depth.gain.value = 600; lfo.connect(depth).connect(lp.frequency); lfo.start();
+    padBus.connect(lp).connect(bus);
+    noise = ctx.createBuffer(1, ctx.sampleRate * .5, ctx.sampleRate);
+    const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   };
 
-  const pad = (notes, t, dur) => notes.forEach((m, i) => [-6, 6].forEach((cents) => {
+  const kick = (t) => {
     const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = i ? 'sine' : 'triangle'; o.frequency.value = hz(m); o.detune.value = cents;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05 / notes.length * (i ? 1 : 1.6), t + 2.5);
-    g.gain.setValueAtTime(.05 / notes.length * (i ? 1 : 1.6), t + dur - 2); g.gain.linearRampToValueAtTime(0, t + dur + 1.5);
-    o.connect(g).connect(ctx.bus); o.start(t); o.stop(t + dur + 1.6);
+    o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(42, t + .14);
+    g.gain.setValueAtTime(.55, t); g.gain.exponentialRampToValueAtTime(.001, t + .32);
+    o.connect(g).connect(bus); o.start(t); o.stop(t + .34);
+    padBus.gain.setValueAtTime(.25, t); padBus.gain.linearRampToValueAtTime(.9, t + .3);  // sidechain pump
+  };
+  const hat = (t, v) => {
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; f.type = 'highpass'; f.frequency.value = 7500;
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + .05);
+    s.connect(f).connect(g).connect(bus); s.start(t); s.stop(t + .06);
+  };
+  const bass = (m, t) => {
+    const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    o.type = 'sawtooth'; o.frequency.value = hz(m);
+    f.type = 'lowpass'; f.Q.value = 6; f.frequency.setValueAtTime(1800, t); f.frequency.exponentialRampToValueAtTime(220, t + .13);
+    g.gain.setValueAtTime(.07, t); g.gain.exponentialRampToValueAtTime(.001, t + STEP * .95);
+    o.connect(f).connect(g).connect(bus); o.start(t); o.stop(t + STEP);
+  };
+  const pad = (notes, t, dur) => notes.forEach((m) => [-9, 9].forEach((c) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sawtooth'; o.frequency.value = hz(m); o.detune.value = c;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.012, t + .6);
+    g.gain.setValueAtTime(.012, t + dur - .3); g.gain.linearRampToValueAtTime(0, t + dur + .4);
+    o.connect(g).connect(padBus); o.start(t); o.stop(t + dur + .5);
   }));
-  const pluck = (m, t) => {
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = 'sine'; o.frequency.value = hz(m);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.035, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + 1.8);
-    o.connect(g).connect(ctx.bus); o.start(t); o.stop(t + 1.9);
+  const blip = (t) => {                                        // a short FM chirp, like a model thinking
+    const car = ctx.createOscillator(), mod = ctx.createOscillator(), mg = ctx.createGain(), g = ctx.createGain();
+    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain();
+    const f = hz(blipNotes[(Math.random() * blipNotes.length) | 0]);
+    car.type = 'square'; car.frequency.value = f; mod.frequency.value = f * 2.01; mg.gain.value = f * .8;
+    mod.connect(mg).connect(car.frequency);
+    if (pan.pan) pan.pan.value = Math.random() * 1.6 - .8;
+    g.gain.setValueAtTime(.018, t); g.gain.exponentialRampToValueAtTime(.001, t + .09);
+    car.connect(g).connect(pan); pan.connect(bus); pan.connect(ctx.echo);
+    car.start(t); mod.start(t); car.stop(t + .1); mod.stop(t + .1);
   };
 
-  let bar = 0;
-  const schedule = () => {
-    const t = ctx.currentTime + .1, len = 8;
-    pad(chords[bar % chords.length], t, len);
-    for (let b = 0; b < 8; b++) if (Math.random() < .55) pluck(scale[(Math.random() * scale.length) | 0], t + b + (Math.random() < .3 ? .5 : 0));
-    bar++;
-    timer = setTimeout(schedule, len * 1000);
+  const tick = () => {
+    while (next < ctx.currentTime + .12) {
+      const s = step % 16, bar = (step / 16) | 0, ch = prog[((bar / 2) | 0) % prog.length];
+      if (s % 4 === 0) kick(next);
+      if (s % 4 === 2) hat(next, .05); else if (Math.random() < .35) hat(next, .015);
+      if (bar >= 1) bass(ch.bass + arp[s], next);                // bass comes in after the first bar
+      if (s === 0 && bar % 2 === 0) pad(ch.pad, next, STEP * 32);
+      if (bar >= 2 && Math.random() < .16) blip(next);
+      next += STEP; step++;
+    }
   };
 
   const set = (on) => {
@@ -327,17 +365,16 @@ function startMusic(btn) {
   const play = async () => {
     if (!ctx) build();
     await ctx.resume();
-    if (!timer) schedule();
+    if (!timer) { step = 0; next = ctx.currentTime + .08; timer = setInterval(tick, 25); }
     master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setTargetAtTime(.9, ctx.currentTime, 1.2);
+    master.gain.setTargetAtTime(.8, ctx.currentTime, .8);
     playing = true; set(true);
   };
   const stop = () => {
     master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setTargetAtTime(0, ctx.currentTime, .4);
-    clearTimeout(timer); timer = null;
-    setTimeout(() => { if (!playing) ctx.suspend(); }, 1600);
+    master.gain.setTargetAtTime(0, ctx.currentTime, .3);
     playing = false; set(false);
+    setTimeout(() => { if (!playing) { clearInterval(timer); timer = null; ctx.suspend(); } }, 1200);
   };
   const remember = (v) => { try { localStorage.setItem('music', v); } catch (e) {} };
   btn.addEventListener('click', (e) => { e.stopPropagation(); if (playing) { stop(); remember('off'); } else { play(); remember('on'); } });
