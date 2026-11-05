@@ -302,13 +302,33 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .sea .sea-ship { position: absolute; left: 0; bottom: 26px; font-size: 64px; display: block; width: .9em; height: .62em; }
 .sea .sea-ship .storm { display: none; }
 @media (prefers-reduced-motion: no-preference) {
-  .sea-track { animation: sea-flow 3.2s linear infinite; }
-  .sea-waves .sw2 { animation: flow 1.1s linear infinite reverse; }
+  .sea-track { animation: sea-flow 3.52s linear infinite; }
+  .sea-waves .sw2 { animation: flow 1.21s linear infinite reverse; }
   .sea-sparks path { animation: arc 2.4s infinite; }
   .sea-sparks path:nth-child(2n) { animation-delay: -.8s; } .sea-sparks path:nth-child(3n) { animation-delay: -1.6s; }
-  .sea .sea-ship { animation: sail 9s linear infinite; }
-  .sea .sea-ship .hull, .sea .sea-ship .arcs, .sea .sea-ship .bolt, .sea .sea-ship .water { animation-duration: 9s; animation-delay: 0s; }
+  .sea .sea-ship { animation: sail 9.9s linear infinite; }
+  .sea .sea-ship .hull, .sea .sea-ship .arcs, .sea .sea-ship .bolt, .sea .sea-ship .water { animation-duration: 9.9s; animation-delay: 0s; }
   @keyframes sea-flow { to { transform: translateX(-1200px); } }
   @keyframes sail { from { transform: translateX(-80px); } to { transform: translateX(calc(100vw + 20px)); } }
 }
 @media (prefers-reduced-motion: reduce) { .sea .sea-ship { left: 62%; } }
+
+/* Wake: droplets thrown back off the stern and a trailing wash, while the ship sails. */
+.sea-ship .spray { position: absolute; right: 78%; bottom: -.06em; width: .75em; height: .44em; overflow: visible; }
+.spray .drops circle { fill: var(--accent); opacity: 0; }
+.spray .drops { filter: drop-shadow(0 0 2px var(--accent)); }
+.spray .zp { fill: none; stroke: var(--accent); stroke-width: 1; stroke-linejoin: round; opacity: 0; }
+.spray .wake { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 6 4; opacity: .6; }
+.spray .w-b { opacity: .3; }
+@media (prefers-reduced-motion: no-preference) {
+  .sea-ship .spray { animation: tide 9.9s infinite both; }
+  .spray .drops circle, .spray .zp { animation: spray .8s cubic-bezier(.2,.6,.4,1) infinite; }
+  .spray .wake { animation: flow .6s linear infinite reverse; }
+  @keyframes spray {
+    0% { transform: translate(0, 0); opacity: 0; }
+    10% { opacity: 1; } 20% { opacity: .3; } 28% { opacity: 1; }
+    45% { transform: translate(-16px, -11px); opacity: .9; } 55% { opacity: .35; } 62% { opacity: .9; }
+    100% { transform: translate(-30px, 5px); opacity: 0; }
+  }
+}
+@media (prefers-reduced-motion: reduce) { .spray .drops { display: none; } }
