@@ -332,3 +332,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   }
 }
 @media (prefers-reduced-motion: reduce) { .spray .drops { display: none; } }
+
+/* Music toggle, beside the theme button. */
+.sound-btn + .theme-btn { margin-left: -12px; }
+.sound-btn .snd-on { display: none; }
+.sound-btn.on { color: var(--accent); border-color: var(--accent); }
+.sound-btn.on .snd-on { display: inline; } .sound-btn.on .snd-off { display: none; }
+@media (max-width: 620px) { .sound-btn { margin-left: auto; } .sound-btn + .theme-btn { margin-left: -12px; } }

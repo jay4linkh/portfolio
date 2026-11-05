@@ -27,6 +27,7 @@
   $('#yr').textContent = new Date().getFullYear();
 
   const field = startField($('#field'));
+  startMusic($('#soundBtn'));
 
   let c;
   try { c = await (await fetch('/content.json', { cache: 'no-cache' })).json(); }
@@ -268,4 +269,83 @@ function startSwarm(nodes) {
     if (e.isIntersecting) { io.unobserve(e.target); run(e.target); }
   }), { rootMargin: '0px 0px -18% 0px' });
   nodes.forEach((n) => { if (n.getBoundingClientRect().top > innerHeight * .8) io.observe(n); });
+}
+
+// Background music, made live in the browser (no audio file): slow ambient chords with a soft
+// pluck on top. Browsers only allow sound after a tap, so it is off until the visitor turns it on;
+// once they have, it starts again on their first tap or key press on later visits.
+function startMusic(btn) {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!btn || !AC) { if (btn) btn.hidden = true; return; }
+  let ctx, master, playing = false, timer;
+  const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const chords = [[57, 64, 67, 71, 74], [53, 60, 64, 69, 72], [48, 55, 59, 64, 67], [55, 62, 66, 69, 74]]; // Am9 Fmaj9 Cmaj7 G6/9
+  const scale = [69, 71, 72, 74, 76, 79, 81, 83];
+
+  const build = () => {
+    ctx = new AC();
+    master = ctx.createGain(); master.gain.value = 0;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400; lp.Q.value = .4;
+    const lfo = ctx.createOscillator(), depth = ctx.createGain();
+    lfo.frequency.value = .05; depth.gain.value = 500; lfo.connect(depth).connect(lp.frequency); lfo.start();
+    // Reverb from a decaying noise burst, so it sounds roomy without loading a file.
+    const verb = ctx.createConvolver(), len = ctx.sampleRate * 3.2, ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    verb.buffer = ir;
+    const wet = ctx.createGain(); wet.gain.value = .55;
+    lp.connect(master); lp.connect(verb).connect(wet).connect(master); master.connect(ctx.destination);
+    ctx.bus = lp;
+  };
+
+  const pad = (notes, t, dur) => notes.forEach((m, i) => [-6, 6].forEach((cents) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = i ? 'sine' : 'triangle'; o.frequency.value = hz(m); o.detune.value = cents;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05 / notes.length * (i ? 1 : 1.6), t + 2.5);
+    g.gain.setValueAtTime(.05 / notes.length * (i ? 1 : 1.6), t + dur - 2); g.gain.linearRampToValueAtTime(0, t + dur + 1.5);
+    o.connect(g).connect(ctx.bus); o.start(t); o.stop(t + dur + 1.6);
+  }));
+  const pluck = (m, t) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = hz(m);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.035, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + 1.8);
+    o.connect(g).connect(ctx.bus); o.start(t); o.stop(t + 1.9);
+  };
+
+  let bar = 0;
+  const schedule = () => {
+    const t = ctx.currentTime + .1, len = 8;
+    pad(chords[bar % chords.length], t, len);
+    for (let b = 0; b < 8; b++) if (Math.random() < .55) pluck(scale[(Math.random() * scale.length) | 0], t + b + (Math.random() < .3 ? .5 : 0));
+    bar++;
+    timer = setTimeout(schedule, len * 1000);
+  };
+
+  const set = (on) => {
+    btn.setAttribute('aria-pressed', on); btn.classList.toggle('on', on);
+    btn.setAttribute('aria-label', on ? 'Pause background music' : 'Play background music');
+  };
+  const play = async () => {
+    if (!ctx) build();
+    await ctx.resume();
+    if (!timer) schedule();
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setTargetAtTime(.9, ctx.currentTime, 1.2);
+    playing = true; set(true);
+  };
+  const stop = () => {
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setTargetAtTime(0, ctx.currentTime, .4);
+    clearTimeout(timer); timer = null;
+    setTimeout(() => { if (!playing) ctx.suspend(); }, 1600);
+    playing = false; set(false);
+  };
+  const remember = (v) => { try { localStorage.setItem('music', v); } catch (e) {} };
+  btn.addEventListener('click', (e) => { e.stopPropagation(); if (playing) { stop(); remember('off'); } else { play(); remember('on'); } });
+
+  let wanted = false; try { wanted = localStorage.getItem('music') === 'on'; } catch (e) {}
+  if (wanted) {
+    const first = (e) => { if (btn.contains(e.target)) return; removeEventListener('pointerdown', first); removeEventListener('keydown', first); if (!playing) play(); };
+    addEventListener('pointerdown', first); addEventListener('keydown', first);
+  }
+  document.addEventListener('visibilitychange', () => { if (ctx && playing) document.hidden ? ctx.suspend() : ctx.resume(); });
 }
