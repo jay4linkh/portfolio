@@ -138,6 +138,38 @@ Fixes worth copying:
   negative margin) so letters like "g" keep their tails.
 - Reduced motion: hide arcs, bolt and rain; show the still ship and cloud.
 
+### Agent swarm on scroll (`startSwarm` in app.js)
+Prompts: *"multiple mouse pointers placing things as we scroll down"* (reference: califa.github.io/swarm-site)
+→ *"only one color, different for night and light mode"*.
+- An absolutely positioned overlay over the page (`overflow: hidden`, height = `scrollHeight`) so stray
+  cursors never cause sideways scroll.
+- An IntersectionObserver watches section heads, project cards, rules and skill groups. The first time
+  one enters view, a few cursors named `agent-01`…`agent-05` glide in, draw a box with corner handles and
+  a `W×H` size badge plus a guide line, then "type" the heading in.
+- One colour only: cursors, boxes and labels all use `var(--accent)` (blue in light, green in dark).
+- Runs once per block; skipped entirely under `prefers-reduced-motion`.
+
+### Zapper sea at the page end (`.sea` in index.html + styles.css)
+Prompts: *"a zapper boat on a zapper ocean, flowing a little fast"* → *"jetty water thrown backward"*
+→ *"it should be sparking"* → *"slow it down by 0.1"* (10% slower).
+- A 96px strip above the footer. Waves are one SVG on a fixed 4800px track that slides
+  `translateX(-1200px)` forever; every wave period divides 1200 so the loop is seamless.
+- Three wave lines: a wide faint glow (`sw0`), a main line, and a fast dashed line (`sw2`), plus sparks.
+- The same ship SVG as the tagline sails across (9.9s) with a spray SVG behind it: two wake curves and
+  drops / tiny zig-zags that flicker so the wash looks electric. The storm is hidden on this ship.
+- Avoid `filter: drop-shadow` on the wide wave; it makes rendering slow. Use a wide low-opacity stroke.
+
+### Synthwave music (`startMusic` in app.js)
+Prompts: *"suitable music when someone opens my portfolio"* → *"this is not a spa website, add something
+AI-related"*.
+- Generated live with the Web Audio API, no audio files. 104 BPM, Am–F–C–Em.
+- Kick every beat, noise-buffer hi-hats, a saw-bass arpeggio with a filter envelope, a sidechained pad,
+  random FM "data blips", a delay echo and a compressor on the master.
+- A lookahead scheduler (25ms timer, 0.12s ahead) keeps timing tight.
+- Off by default because browsers block autoplay; the speaker button in the nav turns it on, and the
+  choice is remembered in `localStorage.music` so later visits start on the first tap. Pauses when the
+  tab is hidden.
+
 ### Theme toggle
 A tiny inline script in `<head>` reads `localStorage.theme` before paint (no flash).
 The button flips `data-theme` and calls `field.recolor()` so the canvas picks up the new accent.
@@ -206,3 +238,6 @@ Empty link fields are hidden automatically. A project with no links shows "Code 
 9. Fixed the clipped "g", two-line tagline, zappy water.
 10. Sailboat → ocean liner, same size.
 11. A small storm, kept minimal.
+12. Agent-swarm cursors that build each section as you scroll, in the theme's accent only.
+13. A zapper ship on a zapper sea at the end of the page, with sparking spray behind it.
+14. Background music: ambient first, then replaced with a dark synthwave loop.
